@@ -242,7 +242,7 @@ WarWorld = {
     beginGame: function () {
         WarWorld._initWorld();
         WarWorld._initTerrain();
-        WarWorld.worldRender();
+        //WarWorld.worldRender();
     },
 
     addPlayer: function () {

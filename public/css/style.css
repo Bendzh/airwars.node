@@ -21,7 +21,7 @@ div#startScreen #nick{
     border: thin solid grey;
     border-radius: 10px;
 }
-div#startScreen div:last-child{
+div#startScreen div#setInfo{
     width: 400px;
     display: inline-block;
 }
@@ -37,4 +37,16 @@ div#startScreen #startBtn{
     font-weight: bold;
     cursor: pointer;
     outline: none;
+}
+#tableInfo{
+    display: none;
+}
+table{
+    border: thin solid silver;
+    border-collapse: collapse;
+    width: 400px;
+    margin-top: 50px;
+}
+table th, table td{
+    border: thin solid silver;
 }

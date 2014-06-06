@@ -1,5 +1,4 @@
 window.onload = function () {
-
     var IO = {
 
         init: function () {
@@ -12,18 +11,19 @@ window.onload = function () {
             IO.socket.on('deleteStartScreen', IO.deleteStartScreen);
             IO.socket.on('playerJoinedRoom', IO.addPlayerInGame);
 
-            IO.socket.on('debug', function(data){
+            IO.socket.on('debug', function (data) {
                 console.log(data);
             });
 
-            IO.socket.on('room', function(data){
+            IO.socket.on('room', function (data) {
                 console.log(data.room);
             });
         },
 
         serverGameCreated: function (data) {
-            APP.initGame(data);
-            //APP.hostJoinPlayer();
+            APP.showWaitingScreen();
+            APP.initGame();
+            APP.hostJoinPlayer(data);
         },
 
         deleteStartScreen: function () {
@@ -38,9 +38,11 @@ window.onload = function () {
 
     var APP = {
 
-        games:[],
+        game: WarWorld,
         gameId: 0,
         mySocketId: '',
+        myNick: '',
+        ready: 0,
         airplanesInBattle: 0,
 
         init: function () {
@@ -53,6 +55,12 @@ window.onload = function () {
             };
         },
 
+        showWaitingScreen: function () {
+            var tableInfo = document.getElementById('tableInfo');
+            document.getElementById('setInfo').style.display = 'none';
+            tableInfo.style.display = 'inline-block';
+        },
+
         hideStartScreen: function () {
             document.getElementById('startScreen').style.display = 'none';
         },
@@ -61,43 +69,43 @@ window.onload = function () {
             IO.socket.emit('newServerGame');
         },
 
-        hostJoinPlayer: function () {
-            IO.socket.emit('hostJoinPlayer', {gameId: APP.games[ APP.currentGame() ].gameId});
-            console.log('Player joinde to ' + APP.games[ APP.currentGame() ].gameId);
+        hostJoinPlayer: function (data) {
+            var nick = $('#nick').val();
+            APP.myNick = nick;
+            IO.socket.emit('hostJoinPlayer', {gameId: data.gameId, nick: nick});
         },
 
-        initGame: function (data) {
-            var game = {};
-
-            game.game = WarWorld;
-            game.gameId = data.gameId;
-
-            APP.games.push(game);
-
-            APP.mySocketId = data.mySocketId;
-            APP.games[ APP.currentGame() ].game.beginGame();
-
-            IO.socket.emit('gameWasStarted');
+        initGame: function () {
+            APP.game.beginGame();
+//IO.socket.emit('gameWasStarted');
         },
 
-        addPlayerInGame: function(data){
-            console.log(data);
+        addPlayerInGame: function (data) {
+            var table = '';
 
-            var count = data.countPlayers;
+            var count = data['length'];
             var inQueue = count - APP.airplanesInBattle;
 
-            while(inQueue){
-                APP.games[ APP.currentGame() ].game.addPlayer();
-                APP.airplanesInBattle += 1;
-                inQueue -= 1;
+            if (inQueue > 0) {
+                for (var id in data)
+                    if (id != 'length') {
+                        for (var player in data[id]) {
+                            if(APP.myNick != player || APP.ready == 0){
+                                APP.game.addPlayer();
+                                table += '<tr><td>' + data[id][player].nick + '</td>';
+                                var status = data[id][player]['status'] ? 'ready' : 'gone';
+                                table += '<td>' + status + '</td>';
+                                table += '</tr>';
+                            }
+                        }
+                        inQueue--;
+                        if (!inQueue) break;
+                    }
             }
-
+            APP.ready = 1;
+            $('#tableInfo tbody').append(table);
             IO.socket.emit('playerWasJoined');
-
-
-        },
-
-        currentGame: function(){ return APP.games.length - 1; }
+        }
 
     };
     IO.init();

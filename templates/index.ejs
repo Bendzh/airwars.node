@@ -21,25 +21,44 @@
     <script src="/js/client.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
         span#hit {
             position: absolute;
-            left: 100px;}
+            left: 100px;
+        }
     </style>
 </head>
 <body>
 <div id="startScreen">
     <div>
         <h1><%= title %></h1>
+
         <p>Welcome to <%= helloMsg %></p>
     </div>
 
-    <div>
+    <div id="setInfo">
         <input id="nick" type="text" placeholder="user name">
         <button id="startBtn">START</button>
     </div>
+    <div id="tableInfo">
+        <table>
+            <caption>Waiting for players...</caption>
+            <thead>
+            <tr>
+                <th>Login</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </div>
-<div id="webgl">
+<div id="webgl" style="visibility: hidden;">
     <span id="hit"></span>
 </div>
 </body>

@@ -2,9 +2,12 @@ var server = {
 
     io: null,
     gameSocket: null,
-    games: [],
+    games: { length: 0 },
+    players: { length: 0 },
 
-    currentGame: function(){ return server.games.length - 1; }
+    currentGame: function () {
+        return server.games.length - 1;
+    }
 
 };
 
@@ -20,16 +23,21 @@ _init = function (sIo, socket) {
 
 function joinPlayerInRoom(data) {
     var sock = this;
+    var nick = data.nick;
+    var player = {};
 
-    data.mySocketId = sock.id;
+    player.nick = nick;
+    player.status = 1;
+
+    server.players[data.gameId][nick] = player;
+    server.players.length += 1;
 
     sock.join(data.gameId.toString());
 
-    data.countPlayers = server.games[ server.currentGame() ].countPlayers += 1;
+    server.games[data.gameId].countPlayers += 1;
+    //data.countPlayers = server.games[data.gameId].countPlayers;
 
-    console.log('Player joinde to ' + data.gameId);
-
-    server.io.sockets.in(data.gameId).emit('playerJoinedRoom', data);
+    server.io.sockets.in(data.gameId).emit('playerJoinedRoom', server.players);
 }
 
 function hideStartScreen() {
@@ -40,15 +48,25 @@ function newServerGame() {
     var gameId;
     var game = {};
 
-    if (server.games.length == 0) {
-        gameId = game['gameId'] = ( Math.random() * 100000 ) | 0;
-        server.games.push(game);
-        server.games[ server.currentGame() ].countPlayers = 0;
+    if(server.games.length == 0){
+        gameId = ( Math.random() * 100000 ) | 0;
 
-        //this.emit('debug', {obj: server.games, obj2: game});
+        game.gameId = gameId;
+        game.countPlayers = 0;
+
+        server.games[gameId] = game;
+        server.games.length++;
+
+        server.players[gameId] = {};
     }
     else
-        gameId = server.games[ server.currentGame() ].gameId;
+        for(var elem in server.games)
+            if(server.games[elem].countPlayers < 5 && elem != 'length'){
+                gameId = server.games[elem].gameId;
+                break;
+            }
+
+//    this.emit('debug', server.games);
 
     this.emit('newServerGameCreated', {gameId: gameId, mySocketId: this.id});
     this.join(gameId.toString());
