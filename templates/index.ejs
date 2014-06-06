@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/css/style.css'/>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/client.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <script src="/js/three.min.js"></script>
+    <script src="/js/jquery-1.11.1.min.js"></script>
+    <script src="/js/JSONLoader.js"></script>
+    <script src="/js/THREEx.KeyboardState.js"></script>
+    <script src="/js/FirstPersonControls.js"></script>
+    <script src="/js/FlyControls.js"></script>
+    <script src="/js/TerrainLoader.js"></script>
+    <script src="/js/stats.min.js"></script>
+    <script src="/js/physi.js"></script>
+    <script src="/js/general.js"></script>
+    <script src="/js/client.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; }
+        span#hit {
+            position: absolute;
+            left: 100px;}
+    </style>
+</head>
+<body>
+<div id="startScreen">
+    <div>
+        <h1><%= title %></h1>
+        <p>Welcome to <%= helloMsg %></p>
+    </div>
+
+    <div>
+        <input id="nick" type="text" placeholder="user name">
+        <button id="startBtn">START</button>
+    </div>
+</div>
+<div id="webgl">
+    <span id="hit"></span>
+</div>
+</body>
+</html>
