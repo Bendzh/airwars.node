@@ -23,6 +23,7 @@ _init = function (sIo, socket) {
 
 function joinPlayerInRoom(data) {
     var sock = this;
+
     var nick = data.nick;
     var player = {};
 
@@ -33,11 +34,12 @@ function joinPlayerInRoom(data) {
     server.players.length += 1;
 
     sock.join(data.gameId.toString());
+    sock.emit('joinedPlayersList', server.players);
 
     server.games[data.gameId].countPlayers += 1;
     //data.countPlayers = server.games[data.gameId].countPlayers;
 
-    server.io.sockets.in(data.gameId).emit('playerJoinedRoom', server.players);
+    sock.broadcast.to(data.gameId).emit('playerJoinedRoom', player);
 }
 
 function hideStartScreen() {

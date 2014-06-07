@@ -10,6 +10,7 @@ window.onload = function () {
             IO.socket.on('newServerGameCreated', IO.serverGameCreated);
             IO.socket.on('deleteStartScreen', IO.deleteStartScreen);
             IO.socket.on('playerJoinedRoom', IO.addPlayerInGame);
+            IO.socket.on('joinedPlayersList', IO.viewPlayersList);
 
             IO.socket.on('debug', function (data) {
                 console.log(data);
@@ -18,6 +19,10 @@ window.onload = function () {
             IO.socket.on('room', function (data) {
                 console.log(data.room);
             });
+        },
+
+        viewPlayersList: function (data) {
+            APP.viewPlayersList(data);
         },
 
         serverGameCreated: function (data) {
@@ -72,6 +77,7 @@ window.onload = function () {
         hostJoinPlayer: function (data) {
             var nick = $('#nick').val();
             APP.myNick = nick;
+
             IO.socket.emit('hostJoinPlayer', {gameId: data.gameId, nick: nick});
         },
 
@@ -80,31 +86,35 @@ window.onload = function () {
 //IO.socket.emit('gameWasStarted');
         },
 
-        addPlayerInGame: function (data) {
+        viewPlayersList: function (data) {
+
             var table = '';
-
-            var count = data['length'];
-            var inQueue = count - APP.airplanesInBattle;
-
-            if (inQueue > 0) {
-                for (var id in data)
-                    if (id != 'length') {
-                        for (var player in data[id]) {
-                            if(APP.myNick != player || APP.ready == 0){
-                                APP.game.addPlayer();
-                                table += '<tr><td>' + data[id][player].nick + '</td>';
-                                var status = data[id][player]['status'] ? 'ready' : 'gone';
-                                table += '<td>' + status + '</td>';
-                                table += '</tr>';
-                            }
-                        }
-                        inQueue--;
-                        if (!inQueue) break;
+            for (var id in data)
+                if (id != 'length') {
+                    for (var player in data[id]) {
+                        APP.game.addPlayer();
+                        table += '<tr><td>' + data[id][player].nick + '</td>';
+                        var status = data[id][player]['status'] ? 'ready' : 'gone';
+                        table += '<td>' + status + '</td>';
+                        table += '</tr>';
                     }
-            }
+                }
+            $('#tableInfo tbody').append(table);
+
+        },
+
+        addPlayerInGame: function (data) {
+
+            var table = '';
+            APP.game.addPlayer();
+            table += '<tr><td>' + data.nick + '</td>';
+            var status = data['status'] ? 'ready' : 'gone';
+            table += '<td>' + status + '</td>';
+            table += '</tr>';
             APP.ready = 1;
             $('#tableInfo tbody').append(table);
             IO.socket.emit('playerWasJoined');
+
         }
 
     };
