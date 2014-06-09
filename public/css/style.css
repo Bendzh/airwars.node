@@ -50,3 +50,8 @@ table{
 table th, table td{
     border: thin solid silver;
 }
+#timerScreen{
+    display: inline-block;
+    font-size: 40px;
+    display: none;
+}

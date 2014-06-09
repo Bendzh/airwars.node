@@ -1,3 +1,6 @@
+var sIO;
+var myNick;
+var gameId;
 var count = 0;
 var spanHit;
 var hitCount = 0;
@@ -31,8 +34,12 @@ WarWorld = {
     collision: true,
     bullets: [],
 
-    _initWorld: function () {
+    _initWorld: function (sio, gameID, nick) {
         'use strict';
+
+        sIO = sio;
+        gameId = gameID;
+        myNick = nick;
 
         Physijs.scripts.worker = 'js/physijs_worker.js';
         Physijs.scripts.ammo = 'ammo.js';
@@ -56,13 +63,7 @@ WarWorld = {
         WarWorld.camera = new THREE.PerspectiveCamera(45, WarWorld.terrainWidth / WarWorld.terrainHeight, WarWorld.cameraNear, WarWorld.cameraFar);
         WarWorld.camera.position.set(0, 11, 0);
 
-        WarWorld.worldRenderer = new THREE.WebGLRenderer({ antialias: true });
-        WarWorld.worldRenderer.setClearColor(0x1E90FF);
-        WarWorld.worldRenderer.shadowMapEnabled = true;
-        WarWorld.worldRenderer.shadowMap = true;
 
-        WarWorld.worldRenderer.setSize(WarWorld.terrainWidth, WarWorld.terrainHeight);
-        WarWorld.webglContainer.appendChild(WarWorld.worldRenderer.domElement);
         WarWorld.calculateSpeedPerSecond();
 
         WarWorld.world.add(WarWorld.light);
@@ -70,6 +71,16 @@ WarWorld = {
         WarWorld.stats.domElement.style.position = 'absolute';
         WarWorld.stats.domElement.style.top = '0px';
         WarWorld.webglContainer.appendChild(WarWorld.stats.domElement);
+    },
+
+    _initRenderer: function(){
+        WarWorld.worldRenderer = new THREE.WebGLRenderer({ antialias: true });
+        WarWorld.worldRenderer.setClearColor(0x1E90FF);
+        WarWorld.worldRenderer.shadowMapEnabled = true;
+        WarWorld.worldRenderer.shadowMap = true;
+
+        WarWorld.worldRenderer.setSize(WarWorld.terrainWidth, WarWorld.terrainHeight);
+        WarWorld.webglContainer.appendChild(WarWorld.worldRenderer.domElement);
     },
 
     _initTerrain: function () {
@@ -94,7 +105,7 @@ WarWorld = {
         });
     },
 
-    _initAirPlane: function () {
+    _initAirPlane: function (x, y, z, nick) {
         var loader = new THREE.JSONLoader;
         loader.load("js/model/kk1.js", function (geometry, material) {
             var mat = new THREE.MeshFaceMaterial(material);
@@ -134,7 +145,8 @@ WarWorld = {
             }
             WarWorld.airPlanes[numberOfAirplans].numInWorld = numberOfAirplans + 1;
             WarWorld.airPlanes[numberOfAirplans].health = 100;
-            WarWorld.airPlanes[numberOfAirplans].position.set(distanceX, 20.5, -3 - distanceZ);
+            WarWorld.airPlanes[numberOfAirplans].nick = nick;
+            WarWorld.airPlanes[numberOfAirplans].position.set(x, y, z);
             WarWorld.airPlanes[numberOfAirplans].scale.set(0.2, 0.2, 0.2);
             WarWorld.world.add(WarWorld.airPlanes[numberOfAirplans]);
         });
@@ -163,6 +175,9 @@ WarWorld = {
             WarWorld.airPlanes[0].__dirtyPosition = true;
             WarWorld.airPlanes[0].__dirtyRotation = true;
             WarWorld.airPlaneControls.update(clock.getDelta());
+            var sockStr = ""+WarWorld.airPlanes[0].position.x+","+WarWorld.airPlanes[0].position.y+","+WarWorld.airPlanes[0].position.z+","+WarWorld.airPlanes[0].rotation.x+","+WarWorld.airPlanes[0].rotation.y+","+WarWorld.airPlanes[0].rotation.z+",";
+            sockStr += ""+gameId+","+myNick+"";
+            sIO.socket.emit('updatePlayer', {dataStr: sockStr, gameId: gameId});
         }
 
         requestAnimationFrame(WarWorld.worldRender);
@@ -239,13 +254,13 @@ WarWorld = {
         WarWorld.worldRenderer.setSize(window.innerWidth, window.innerHeight);
     },
 
-    beginGame: function () {
-        WarWorld._initWorld();
+    beginGame: function (sio, gameId, nick) {
+        WarWorld._initWorld(sio, gameId, nick);
         WarWorld._initTerrain();
         //WarWorld.worldRender();
     },
 
-    addPlayer: function () {
-        WarWorld._initAirPlane();
+    addPlayer: function (x, y, z, nick) {
+        WarWorld._initAirPlane(x, y, z, nick);
     }
 }
